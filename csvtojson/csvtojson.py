@@ -8,6 +8,9 @@ class csvtojson:
                  delimiter=',',
                  schema_fields=None,
                  remove_null=True):
+        if not leading_row and not schema_fields:
+            raise ValueError(('There should be either a leading row '
+                              'or a defined schema'))
         self.delimiter = delimiter
         self.remove_null = remove_null
         self.header, self.body = self._read_csv(
