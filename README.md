@@ -20,9 +20,9 @@ c2j = csvtojson('./file.csv',
 
 # print the rows in json format
 for row in c2j.convert():
-	print row
+    print row
 
 # write into a file
 with open('./output.json', 'wb') as f:
-	c2j.write(f)
+    c2j.write(f)
 ```
