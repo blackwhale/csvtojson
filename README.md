@@ -11,9 +11,12 @@ pip install csvtojson
 
 Usage
 ----------
-```
+
+```python
+# auto-detect schema
 from csvtojson import csvtojson
-c2j = csvtojson('./file.csv')
+c2j = csvtojson('./file.csv',
+		        leadingrow=True)
 
 # print the rows in json format
 for row in c2j.convert():
