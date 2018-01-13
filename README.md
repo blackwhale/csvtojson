@@ -14,15 +14,10 @@ Usage
 
 ```python
 # auto-detect schema
-from csvtojson import csvtojson
-c2j = csvtojson('./file.csv',
-                leadingrow=True)
+import csvtojson as c2j
+data = c2j.load('./file.csv')
 
 # print the rows in json format
-for row in c2j.convert():
-    print row
-
-# write into a file
-with open('./output.json', 'wb') as f:
-    c2j.write(f)
+for item in data:
+    print item
 ```

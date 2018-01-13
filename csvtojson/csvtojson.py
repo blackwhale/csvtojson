@@ -4,7 +4,7 @@ import json
 
 class csvtojson:
     def __init__(self, csv,
-                 leading_row=False,
+                 leading_row=True,
                  delimiter=',',
                  schema_fields=None,
                  remove_null=True):
@@ -20,14 +20,14 @@ class csvtojson:
             self.header = [s['name'] for s in schema_fields]
             self.schema = [s['type'].lower() for s in schema_fields]
         else:
-            schema = ['none'] * len(self.body[0].split(','))
+            schema = ['none'] * len(self._split(self.body[0]))
             self.schema = self._analyze_schema(schema)
 
     def _read_csv(self, csv, leading_row=False):
         with open(csv, 'rb') as f:
             csv_list = f.read().splitlines()
             if leading_row:
-                header = csv_list[0].split(self.delimiter)
+                header = self._split(csv_list[0])
                 body = csv_list[1:]
             else:
                 header = []
@@ -44,12 +44,30 @@ class csvtojson:
         }
 
         for row in self.body:
-            fields = row.split(',')
+            fields = self._split(row)
             for index, field in enumerate(fields):
                 t = typecheck(field.strip())
                 if order[schema[index]] > order[t]:
                     schema[index] = t
         return [t if t != 'none' else 'string' for t in schema]
+
+    def _split(self, row):
+        nvals = []
+        vals = row.split(self.delimiter)
+        stack = []
+        for val in vals:
+            if val.startswith('"'):
+                if val.endswith('"'):
+                    nvals.append(val[1:-1])
+                else:
+                    stack.append(val)
+            elif val.endswith('"'):
+                stack.append(val)
+                nvals.append(''.join(stack))
+                stack = []
+            else:
+                nvals.append(val)
+        return nvals
 
     def convert(self):
         dtype = {
@@ -59,7 +77,7 @@ class csvtojson:
             'integer': int
         }
         for row in self.body:
-            fields = row.split(self.delimiter)
+            fields = self._split(row)
             res = {}
             for index, field in enumerate(fields):
                 try:
@@ -75,7 +93,7 @@ class csvtojson:
                             if f.lower() == 'false':
                                 res[h] = False
                         if t == str:
-                            if f.startswith('"') and f.endswith(':'):
+                            if f.startswith('"') and f.endswith('"'):
                                 res[h] = f[1:-1]
                             else:
                                 res[h] = f
