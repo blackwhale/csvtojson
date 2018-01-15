@@ -53,20 +53,24 @@ class csvtojson:
 
     def _split(self, row):
         nvals = []
-        vals = row.split(self.delimiter)
+        vals = row.replace('""', "_'_").split(self.delimiter)
         stack = []
         for val in vals:
-            if val.startswith('"'):
+            if not stack:
+                if val.startswith('"'):
+                    if val.endswith('"'):
+                        nvals.append(val[1:-1].replace("_'_", '"'))
+                    else:
+                        stack.append(val)
+                else:
+                    nvals.append(val.replace("_'_", '"'))
+            else:
                 if val.endswith('"'):
-                    nvals.append(val[1:-1])
+                    stack.append(val)
+                    nvals.append(','.join(stack)[1:-1].replace("_'_", '"'))
+                    stack = []
                 else:
                     stack.append(val)
-            elif val.endswith('"'):
-                stack.append(val)
-                nvals.append(''.join(stack))
-                stack = []
-            else:
-                nvals.append(val)
         return nvals
 
     def convert(self):
@@ -101,7 +105,7 @@ class csvtojson:
                         res[h] = None
                 except ValueError as err:
                     pass
-            yield json.dumps(res)
+            yield json.dumps(res, ensure_ascii=False)
 
     def write(self, output_file):
         for row in self.convert():
